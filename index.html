@@ -106,18 +106,18 @@
 
         // Load images
         const spaceshipImg = new Image();
-        spaceshipImg.src = 'data:image/png;base64,...'; // Base64 encoded spaceship image
+        spaceshipImg.src = 'images/spaceship.png';
 
         const backgroundImg = new Image();
-        backgroundImg.src = 'data:image/png;base64,...'; // Base64 encoded space background image
+        backgroundImg.src = 'images/background.png'; // Or Base64 string
 
         const asteroidImg = new Image();
-        asteroidImg.src = 'data:image/png;base64,...'; // Base64 encoded asteroid image
+        asteroidImg.src = 'images/asteroid.png'; // Or Base64 string
 
         // Load sounds
-        const thrustSound = new Audio('data:audio/mp3;base64,...'); // Base64 encoded thrust sound
-        const crashSound = new Audio('data:audio/mp3;base64,...'); // Base64 encoded crash sound
-        const bgMusic = new Audio('data:audio/mp3;base64,...'); // Base64 encoded background music
+        const thrustSound = new Audio('sounds/thrust.mp3'); // Or Base64 string
+        const crashSound = new Audio('sounds/crash.mp3'); // Or Base64 string
+        const bgMusic = new Audio('sounds/bg-music.mp3'); // Or Base64 string
         bgMusic.loop = true;
 
         function startGame() {
