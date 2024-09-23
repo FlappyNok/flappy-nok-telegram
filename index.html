@@ -2,8 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Flappy Bird</title>
+    <title>Space Explorer</title>
     <style>
         body { 
             margin: 0; 
@@ -12,8 +11,8 @@
             justify-content: center; 
             align-items: center; 
             height: 100vh; 
-            background-color: #4ec0ca; 
-            font-family: Arial, sans-serif;
+            background-color: #000; 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
         #gameContainer {
             position: relative;
@@ -21,9 +20,9 @@
             height: 480px;
         }
         canvas { 
-            border: 2px solid #2d3436; 
+            border: 2px solid #fff; 
             border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.3);
+            box-shadow: 0 0 20px rgba(255,255,255,0.5);
         }
         #startScreen, #gameOverScreen {
             position: absolute;
@@ -35,33 +34,44 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            background-color: rgba(0,0,0,0.7);
-            color: white;
+            background-color: rgba(0,0,0,0.8);
+            color: #fff;
             font-size: 24px;
             text-align: center;
         }
         button {
             margin-top: 20px;
-            padding: 10px 20px;
+            padding: 10px 30px;
             font-size: 18px;
-            background-color: #e17055;
-            color: white;
+            background-color: #1e90ff;
+            color: #fff;
             border: none;
             border-radius: 5px;
             cursor: pointer;
             transition: background-color 0.3s;
         }
         button:hover {
-            background-color: #d63031;
+            background-color: #3742fa;
+        }
+        #scoreDisplay {
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #fff;
+            font-size: 24px;
+            font-weight: bold;
+            text-shadow: 2px 2px 5px rgba(0,0,0,0.7);
         }
     </style>
 </head>
 <body>
     <div id="gameContainer">
         <canvas id="gameCanvas" width="320" height="480"></canvas>
+        <div id="scoreDisplay" style="display: none;">Score: 0</div>
         <div id="startScreen">
-            <h1>Flappy Bird</h1>
-            <p>Click to start</p>
+            <h1>Space Explorer</h1>
+            <p>Navigate through the asteroids!</p>
             <button id="startButton">Start Game</button>
         </div>
         <div id="gameOverScreen" style="display: none;">
@@ -78,23 +88,148 @@
         const startButton = document.getElementById('startButton');
         const restartButton = document.getElementById('restartButton');
         const finalScoreSpan = document.getElementById('finalScore');
+        const scoreDisplay = document.getElementById('scoreDisplay');
 
         // Game variables
-        let bird = { x: 50, y: 200, velocity: 0 };
-        let pipes = [];
+        let spaceship = { x: 50, y: 200, velocity: 0 };
+        let asteroids = [];
         let score = 0;
         let gameOver = false;
         let gameStarted = false;
+        let animationFrameId;
 
         // Constants
         const GRAVITY = 0.5;
-        const JUMP = -10;
-        const PIPE_WIDTH = 50;
-        const PIPE_GAP = 150;
+        const THRUST = -10;
+        const ASTEROID_WIDTH = 50;
+        const ASTEROID_GAP = 140;
 
         // Load images
-        const birdImg = new Image();
-        birdImg.src = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAACXBIWXMAAAsTAAALEwEAmpwYAAAFHGlUWHRYTUw6Y29tLmFkb2JlLnhtcAAAAAAAPD94cGFja2V0IGJlZ2luPSLvu78iIGlkPSJXNU0wTXBDZWhpSHpyZVN6TlRjemtjOWQiPz4gPHg6eG1wbWV0YSB4bWxuczp4PSJhZG9iZTpuczptZXRhLyIgeDp4bXB0az0iQWRvYmUgWE1QIENvcmUgNS42LWMxNDUgNzkuMTYzNDk5LCAyMDE4LzA4LzEzLTE2OjQwOjIyICAgICAgICAiPiA8cmRmOlJERiB4bWxuczpyZGY9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkvMDIvMjItcmRmLXN5bnRheC1ucyMiPiA8cmRmOkRlc2NyaXB0aW9uIHJkZjphYm91dD0iIiB4bWxuczp4bXA9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC8iIHhtbG5zOmRjPSJodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyIgeG1sbnM6cGhvdG9zaG9wPSJodHRwOi8vbnMuYWRvYmUuY29tL3Bob3Rvc2hvcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RFdnQ9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZUV2ZW50IyIgeG1wOkNyZWF0b3JUb29sPSJBZG9iZSBQaG90b3Nob3AgQ0MgMjAxOSAoV2luZG93cykiIHhtcDpDcmVhdGVEYXRlPSIyMDIzLTA5LTIzVDIyOjI4OjMzKzA3OjAwIiB4bXA6TW9kaWZ5RGF0ZT0iMjAyMy0wOS0yM1QyMjoyOTo1NiswNzowMCIgeG1wOk1ldGFkYXRhRGF0ZT0iMjAyMy0wOS0yM1QyMjoyOTo1NiswNzowMCIgZGM6Zm9ybWF0PSJpbWFnZS9wbmciIHBob3Rvc2hvcDpDb2xvck1vZGU9IjMiIHBob3Rvc2hvcDpJQ0NQcm9maWxlPSJzUkdCIElFQzYxOTY2LTIuMSIgeG1wTU06SW5zdGFuY2VJRD0ieG1wLmlpZDphOWZiMWUzNS1kNzc1LTI5NDctOTBjZi01ODc5ZWI2MDk1Y2UiIHhtcE1NOkRvY3VtZW50SUQ9InhtcC5kaWQ6YTlmYjFlMzUtZDc3NS0yOTQ3LTkwY2YtNTg3OWViNjA5NWNlIiB4bXBNTTpPcmlnaW5hbERvY3VtZW50SUQ9InhtcC5kaWQ6YTlmYjFlMzUtZDc3NS0yOTQ3LTkwY2YtNTg3OWViNjA5NWNlIj4gPHhtcE1NOkhpc3Rvcnk+IDxyZGY6U2VxPiA8cmRmOmxpIHN0RXZ0OmFjdGlvbj0iY3JlYXRlZCIgc3RFdnQ6aW5zdGFuY2VJRD0ieG1wLmlpZDphOWZiMWUzNS1kNzc1LTI5NDctOTBjZi01ODc5ZWI2MDk1Y2UiIHN0RXZ0OndoZW49IjIwMjMtMDktMjNUMjI6Mjg6MzMrMDc6MDAiIHN0RXZ0OnNvZnR3YXJlQWdlbnQ9IkFkb2JlIFBob3Rvc2hvcCBDQyAyMDE5IChXaW5kb3dzKSIvPiA8L3JkZjpTZXE+IDwveG1wTU06SGlzdG9yeT4gPC9yZGY6RGVzY3JpcHRpb24+IDwvcmRmOlJERj4gPC94OnhtcG1ldGE+IDw/eHBhY2tldCBlbmQ9InIiPz5V57uAAAABgmlDQ1BzUkdCIElFQzYxOTY2LTIuMQAAKJF1kc8rRFEUxz9maORHo1hYKC9hISNGTWwsRn4VFmOUX5uZZ36oeTOv954kW2WrKLHxa8FfwFZZK0WkZClrYoOe87ypmWTO7dzzud97z+nec8ETzaiaWd4NWtYyIiNhZWZ2TvE946WZSjqoj6mmPjE1HKWkfdxR5sSbgFOr9Ll/rXoxYapQVik8oOqGJTwqPL5i6Q5vCzeo6dii8KlwpyEXFL519LjLLw6nXP5y2IhGBsFTJ6ykijhexGra0ITl5bRqmWU1fx/nJTWJ7PSUxBbxJkwijBBGYYwhBgnRQ7/MIQIE6ZIVJfK7f/MnyUmuKrPOKgZLpEhj0SnqslRPSEyKnpCRYdXp/9++msneoFu9JgwVT7b91ga+LfjetO3PQ9v+PgLvI1xkC/m5A+h7F32zoLXug38dzi4LWnwHzjeg8UGPGbFfySvuSSbh9QRqZ6H+Gqrm3Z7l9zm+h+iafNUV7O5Bu5z3L/wAdthn7QIme0YAAAAJcEhZcwAADsQAAA7EAZUrDhsAAAJTSURBVFiF7Zbdi1JRGMafo5Opq8LJD7ooL6S6Kaib/gJvvOgqiAi9kKjFwEV301Vd+AdU0EUNhRfVBtEMFXhRUxiRFSWZYaGJYwf0osch9+z3vH7smSPaOXrgcN7vfX7P2Wd/rLX+2n+nqiHY5/OtBEGwXa1WD7LZ7HG73T73+/1SJpP5xIBls9lzKZVK51o0Gg1Vq1V1u70GWCwWOmaz2RZt3YrH47pXKBQKXNvDzgpBt3mgN6L8/f0dSu4b0XWdawiEWCz2g9qxb7fb6nQ6urRMnM/nVS6Xz5DVbDZXOp1ODcYEAsB2hDJlXZp/Lftqzs+0rFYrTbGt8g6y8P5AANBFoIUyxT0hLIJ7ZTKZVZ1f0UGgN5LMQAAIK0uYqExZN/5TgsGgxl+HwyFNHmXPMQgAUoINAtJpMKvLFD5mPB5rKvKdP18Kh8N/GJyBtZAIAMoRUQC26ObAKBQKqVgsnguHNxwO1ev1tEPyAKwJc6FQaCGIEKYSJQCsK1IGkABm5HK5t3wHryvD0/l8/g23SACCJADAAYj38CzLGo/H06yw1Ol0XmLnBg9KAILTJADpJFjLm372+33NMGzLsvLYtcmTJABpRCnVZGC0nU6nCfVB2VH9VBSETVugKpFK6Xpd18/ZZ0W2bbfL5TJ2b+FUfaKgjBLz+fyk2+1e5JYFUZPJpF+v128yUgAISQA4BfEsiqKb4XD4xvMIvDAA/Q3tnuQgLnGAqQAAAABJRU5ErkJggg==';
+        const spaceshipImg = new Image();
+        spaceshipImg.src = 'data:image/png;base64,...'; // Base64 encoded spaceship image
 
         const backgroundImg = new Image();
-        backgroundImg.src = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAUAAAADwCAYAAABxLb1rAAAACXBIWXMAAAsTAAALEwEAmpwYAAAF7GlUWHRYTUw6Y29tLmFkb2JlLnhtcAAAAAAAPD94cGFja2V0IGJlZ2luPSLvu78iIGlkPSJXNU0wTXBDZWhpSHpyZVN6TlRjemtjOWQiPz4gPHg6eG1wbWV0YSB4bWxuczp4PSJhZG9iZTpuczptZXRhLyIgeDp4bXB0az0iQWRvYmUgWE1QIENvcmUgNS42LWMxNDUgNzkuMTYzNDk5LCAyMDE4LzA4LzEzLTE2OjQwOjIyICAgICAgICAiPi
+        backgroundImg.src = 'data:image/png;base64,...'; // Base64 encoded space background image
+
+        const asteroidImg = new Image();
+        asteroidImg.src = 'data:image/png;base64,...'; // Base64 encoded asteroid image
+
+        // Load sounds
+        const thrustSound = new Audio('data:audio/mp3;base64,...'); // Base64 encoded thrust sound
+        const crashSound = new Audio('data:audio/mp3;base64,...'); // Base64 encoded crash sound
+        const bgMusic = new Audio('data:audio/mp3;base64,...'); // Base64 encoded background music
+        bgMusic.loop = true;
+
+        function startGame() {
+            gameStarted = true;
+            startScreen.style.display = 'none';
+            scoreDisplay.style.display = 'block';
+            bgMusic.play();
+            resetGame();
+            canvas.addEventListener('click', thrust);
+            canvas.addEventListener('touchstart', thrust);
+            gameLoop();
+        }
+
+        function resetGame() {
+            spaceship = { x: 50, y: 200, velocity: 0 };
+            asteroids = [];
+            score = 0;
+            gameOver = false;
+        }
+
+        function gameLoop() {
+            update();
+            draw();
+            if (!gameOver) {
+                animationFrameId = requestAnimationFrame(gameLoop);
+            } else {
+                endGame();
+            }
+        }
+
+        function update() {
+            // Update spaceship
+            spaceship.velocity += GRAVITY;
+            spaceship.y += spaceship.velocity;
+
+            // Update asteroids
+            if (asteroids.length === 0 || asteroids[asteroids.length - 1].x < 200) {
+                let gapPosition = Math.floor(Math.random() * (canvas.height - ASTEROID_GAP - 100)) + 50;
+                asteroids.push({
+                    x: canvas.width,
+                    y: gapPosition,
+                    passed: false,
+                });
+            }
+
+            asteroids.forEach(asteroid => {
+                asteroid.x -= 2;
+                // Check for collision
+                if (
+                    spaceship.x + 30 > asteroid.x &&
+                    spaceship.x < asteroid.x + ASTEROID_WIDTH &&
+                    (spaceship.y < asteroid.y || spaceship.y + 30 > asteroid.y + ASTEROID_GAP)
+                ) {
+                    gameOver = true;
+                    crashSound.play();
+                    bgMusic.pause();
+                }
+                // Check if asteroid passed
+                if (!asteroid.passed && asteroid.x + ASTEROID_WIDTH < spaceship.x) {
+                    asteroid.passed = true;
+                    score++;
+                    scoreDisplay.textContent = 'Score: ' + score;
+                }
+            });
+
+            // Remove off-screen asteroids
+            if (asteroids.length && asteroids[0].x + ASTEROID_WIDTH < 0) {
+                asteroids.shift();
+            }
+
+            // Check if spaceship is out of bounds
+            if (spaceship.y + 30 > canvas.height || spaceship.y < 0) {
+                gameOver = true;
+                crashSound.play();
+                bgMusic.pause();
+            }
+        }
+
+        function draw() {
+            // Draw background
+            ctx.drawImage(backgroundImg, 0, 0, canvas.width, canvas.height);
+
+            // Draw spaceship
+            ctx.drawImage(spaceshipImg, spaceship.x, spaceship.y, 30, 30);
+
+            // Draw asteroids
+            asteroids.forEach(asteroid => {
+                // Upper asteroid
+                ctx.drawImage(asteroidImg, asteroid.x, 0, ASTEROID_WIDTH, asteroid.y);
+                // Lower asteroid
+                ctx.drawImage(asteroidImg, asteroid.x, asteroid.y + ASTEROID_GAP, ASTEROID_WIDTH, canvas.height - asteroid.y - ASTEROID_GAP);
+            });
+        }
+
+        function thrust() {
+            spaceship.velocity = THRUST;
+            thrustSound.play();
+        }
+
+        function endGame() {
+            cancelAnimationFrame(animationFrameId);
+            canvas.removeEventListener('click', thrust);
+            canvas.removeEventListener('touchstart', thrust);
+            finalScoreSpan.textContent = score;
+            gameOverScreen.style.display = 'flex';
+        }
+
+        startButton.addEventListener('click', startGame);
+        restartButton.addEventListener('click', () => {
+            gameOverScreen.style.display = 'none';
+            startGame();
+        });
+    </script>
+</body>
+</html>
