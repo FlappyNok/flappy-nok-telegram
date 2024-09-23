@@ -154,8 +154,8 @@
             spaceship.y += spaceship.velocity;
 
             // Update asteroids
-            if (asteroids.length === 0 || asteroids[asteroids.length - 1].x < 350) {
-                let gapPosition = Math.floor(Math.random() * (canvas.height - ASTEROID_GAP - 100)+200);
+            if (asteroids.length === 0 || asteroids[asteroids.length - 1].x < 550) {
+                let gapPosition = Math.floor(Math.random() * (canvas.height - ASTEROID_GAP - 100))+50;
                 asteroids.push({
                     x: canvas.width,
                     y: gapPosition,
