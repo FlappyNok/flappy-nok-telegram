@@ -101,8 +101,8 @@
         // Constants
         const GRAVITY = 0.1;
         const THRUST = -2;
-        const ASTEROID_WIDTH = 100;
-        const ASTEROID_GAP = 200;
+        const ASTEROID_WIDTH = 50;
+        const ASTEROID_GAP = 300;
 
         // Load images
         const spaceshipImg = new Image();
@@ -154,7 +154,7 @@
             spaceship.y += spaceship.velocity;
 
             // Update asteroids
-            if (asteroids.length === 0 || asteroids[asteroids.length - 1].x < 550) {
+            if (asteroids.length === 0 || asteroids[asteroids.length - 1].x < 250) {
                 let gapPosition = Math.floor(Math.random() * (canvas.height - ASTEROID_GAP - 100))+50;
                 asteroids.push({
                     x: canvas.width,
@@ -164,7 +164,7 @@
             }
 
             asteroids.forEach(asteroid => {
-                asteroid.x -= 1;
+                asteroid.x -= 0.5;
                 // Check for collision
                 if (
                     spaceship.x + 30 > asteroid.x &&
