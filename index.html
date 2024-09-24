@@ -318,7 +318,7 @@
             });
 
             // Update level and difficulty
-            let newLevel = Math.floor(score / 10) + 0.1;
+            let newLevel = Math.floor(score / 10) + 1;
             if (newLevel !== level) {
                 level = newLevel;
                 levelDisplay.textContent = 'Level: ' + level;
