@@ -116,31 +116,31 @@
         let highScore = localStorage.getItem('highScore') || 0;
 
         // Constants
-        const GRAVITY = 1;
-        const THRUST = -2;
+        const GRAVITY = 0.3;           // Reduced gravity for easier control
+        const THRUST = -5;             // Increased thrust for better lift
         const POWER_UP_SIZE = 30;
         const POWER_UP_TYPES = ['shield', 'speed'];
-        const POWER_UP_DURATION = 5000; // milliseconds
+        const POWER_UP_DURATION = 7000; // Extended duration
 
         let ASTEROID_WIDTH = 50; 
-        let ASTEROID_GAP = 170;
-        let ASTEROID_SPEED = 1;
+        let ASTEROID_GAP = 180;        // Increased gap size
+        let ASTEROID_SPEED = 1.5;      // Slower asteroids
 
         // Load images
         const spaceshipImg = new Image();
-        spaceshipImg.src = 'images/spaceship.png'; // Replace with your image path
+        spaceshipImg.src = 'images/spaceship.png'; // Ensure this image exists
 
         const asteroidImg = new Image();
-        asteroidImg.src = 'images/pipe.png'; // Replace with your image path
+        asteroidImg.src = 'images/asteroid.png'; // Corrected image path
 
         const ufoImg = new Image();
-        ufoImg.src = 'images/ufo.png'; // Replace with your image path
+        ufoImg.src = 'images/ufo.png'; // Ensure this image exists
 
         const shieldImg = new Image();
-        shieldImg.src = 'images/shield.png'; // Replace with your image path
+        shieldImg.src = 'images/shield.png'; // Ensure this image exists
 
         const speedImg = new Image();
-        speedImg.src = 'images/speed.png'; // Replace with your image path
+        speedImg.src = 'images/speed.png'; // Ensure this image exists
 
         const backgrounds = [
             'images/space1.png', // Level 1 background
@@ -153,9 +153,9 @@
         backgroundImg.src = backgrounds[0];
 
         // Load sounds
-        const thrustSound = new Audio('sounds/thrust.mp3'); // Replace with your sound path
-        const crashSound = new Audio('sounds/crash.mp3'); // Replace with your sound path
-        const bgMusic = new Audio('sounds/bg-music.mp3'); // Replace with your sound path
+        const thrustSound = new Audio('sounds/thrust.mp3'); // Ensure this sound exists
+        const crashSound = new Audio('sounds/crash.mp3'); // Ensure this sound exists
+        const bgMusic = new Audio('sounds/bg-music.mp3'); // Ensure this sound exists
         bgMusic.loop = true;
 
         function startGame() {
@@ -180,8 +180,8 @@
             level = 1;
             shieldActive = false;
             speedActive = false;
-            ASTEROID_GAP = 170;
-            ASTEROID_SPEED = 1;
+            ASTEROID_GAP = 180;        // Reset gap size
+            ASTEROID_SPEED = 1.5;      // Reset asteroid speed
             backgroundImg.src = backgrounds[0];
             scoreDisplay.textContent = 'Score: 0';
             levelDisplay.textContent = 'Level: 1';
@@ -210,19 +210,13 @@
                     x: canvas.width,
                     y: gapPosition,
                     passed: false,
-                    verticalSpeed: Math.random() * 2 - 1, // Random vertical movement
+                    verticalSpeed: 0, // No vertical movement for easier gameplay
                 });
             }
 
             // Update asteroids
             asteroids.forEach((asteroid, index) => {
                 asteroid.x -= ASTEROID_SPEED;
-                asteroid.y += asteroid.verticalSpeed;
-
-                // Reverse direction if hitting bounds
-                if (asteroid.y <= 0 || asteroid.y + ASTEROID_GAP >= canvas.height) {
-                    asteroid.verticalSpeed *= -1;
-                }
 
                 // Check for collision
                 if (
@@ -250,12 +244,12 @@
                 }
             });
 
-            // Spawn UFOs
-            if (Math.random() < 0.002) {
+            // Spawn UFOs less frequently
+            if (Math.random() < 0.001) {
                 ufos.push({
                     x: canvas.width,
                     y: Math.random() * (canvas.height - 40),
-                    speed: ASTEROID_SPEED + 1,
+                    speed: ASTEROID_SPEED + 0.5,
                 });
             }
 
@@ -286,8 +280,8 @@
                 }
             });
 
-            // Spawn power-ups
-            if (Math.random() < 0.005) {
+            // Spawn power-ups more frequently
+            if (Math.random() < 0.01) {
                 let powerUpType = POWER_UP_TYPES[Math.floor(Math.random() * POWER_UP_TYPES.length)];
                 powerUps.push({
                     x: canvas.width,
@@ -318,7 +312,7 @@
             });
 
             // Update level and difficulty
-            let newLevel = Math.floor(score / 10) + 1;
+            let newLevel = Math.floor(score / 15) + 1; // Increase level less frequently
             if (newLevel !== level) {
                 level = newLevel;
                 levelDisplay.textContent = 'Level: ' + level;
@@ -397,9 +391,9 @@
         }
 
         function updateDifficulty() {
-            ASTEROID_SPEED = 1 + level * 0.5;
-            ASTEROID_GAP = 170 - level * 5;
-            if (ASTEROID_GAP < 100) ASTEROID_GAP = 100;
+            ASTEROID_SPEED = 1.5 + level * 0.2; // Slower increase in speed
+            ASTEROID_GAP = 180 - level * 2;     // Slower decrease in gap size
+            if (ASTEROID_GAP < 140) ASTEROID_GAP = 140; // Set a minimum gap size
         }
 
         function updateBackground() {
