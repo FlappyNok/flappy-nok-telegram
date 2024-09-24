@@ -116,15 +116,15 @@
         let highScore = localStorage.getItem('highScore') || 0;
 
         // Constants
-        const GRAVITY = 0.5;
-        const THRUST = -10;
+        const GRAVITY = 0.1;
+        const THRUST = -2;
         const POWER_UP_SIZE = 30;
         const POWER_UP_TYPES = ['shield', 'speed'];
         const POWER_UP_DURATION = 5000; // milliseconds
 
         let ASTEROID_WIDTH = 50;
-        let ASTEROID_GAP = 140;
-        let ASTEROID_SPEED = 2;
+        let ASTEROID_GAP = 200;
+        let ASTEROID_SPEED = 1;
 
         // Load images
         const spaceshipImg = new Image();
