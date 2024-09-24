@@ -122,8 +122,8 @@
         const POWER_UP_TYPES = ['shield', 'speed'];
         const POWER_UP_DURATION = 5000; // milliseconds
 
-        let ASTEROID_WIDTH = 150;
-        let ASTEROID_GAP = 500;
+        let ASTEROID_WIDTH = 50; 
+        let ASTEROID_GAP = 170;
         let ASTEROID_SPEED = 0.1;
 
         // Load images
@@ -204,7 +204,7 @@
             spaceship.y += spaceship.velocity;
 
             // Generate new asteroids
-            if (asteroids.length === 0 || asteroids[asteroids.length - 1].x < 300) {
+            if (asteroids.length === 0 || asteroids[asteroids.length - 1].x < 250) {
                 let gapPosition = Math.floor(Math.random() * (canvas.height - ASTEROID_GAP - 100)) + 50;
                 asteroids.push({
                     x: canvas.width,
